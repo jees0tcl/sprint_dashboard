@@ -1,0 +1,1638 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>더크로싱랩 애자일 스프린트 통합 대시보드 - 9/15~9/26</title>
+    <style>
+        :root {
+            --primary-blue: #2563eb;
+            --success-green: #16a34a;
+            --warning-orange: #ea580c;
+            --danger-red: #dc2626;
+            --background-light: #f8fafc;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, #1e40af 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .sprint-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .info-card h3 {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-card .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .overview-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: var(--background-light);
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-blue);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-card h3 {
+            color: #374151;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card .number {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .members-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .member-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+        }
+
+        .member-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .member-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .member-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .member-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+
+        .completion-rate {
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            color: white;
+        }
+
+        .completion-rate.excellent { background: var(--success-green); }
+        .completion-rate.good { background: #059669; }
+        .completion-rate.average { background: var(--warning-orange); }
+        .completion-rate.poor { background: var(--danger-red); }
+
+        .member-details {
+            padding: 20px;
+            display: none;
+        }
+
+        .member-details.expanded {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .task-item {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .task-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .jira-link a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            padding: 2px 8px;
+            background: rgba(37, 99, 235, 0.1);
+            border-radius: 4px;
+            font-size: 0.85rem;
+            transition: background 0.2s ease;
+        }
+
+        .jira-link a:hover {
+            background: rgba(37, 99, 235, 0.2);
+            text-decoration: underline;
+        }
+
+        .task-points {
+            background: var(--primary-blue);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .task-progress {
+            background: var(--success-green);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .task-details {
+            color: #4b5563;
+            line-height: 1.5;
+        }
+
+        .task-details ul {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .task-details li {
+            margin-bottom: 4px;
+        }
+
+        .task-link {
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .task-link:hover {
+            text-decoration: underline;
+        }
+
+        .missing-members {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .missing-members h3 {
+            color: var(--danger-red);
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .missing-list {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .missing-member {
+            background: var(--danger-red);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .slackbot-section {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .slackbot-section h3 {
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .proposals-section {
+            background: #fffbeb;
+            border: 1px solid #fed7aa;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .proposals-section h3 {
+            color: #92400e;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .tag-examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .tag-example {
+            background: white;
+            border: 1px solid #d97706;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .tag-example .tag {
+            background: #d97706;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .decisions-section {
+            background: #f0f9ff;
+            border: 1px solid #7dd3fc;
+            border-radius: 12px;
+            padding: 25px;
+        }
+
+        .decisions-section h3 {
+            color: #0369a1;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .decision-item {
+            background: white;
+            border: 1px solid #bae6fd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+
+        .expand-icon {
+            float: right;
+            transition: transform 0.3s ease;
+            font-size: 1.2rem;
+            color: #6b7280;
+        }
+
+        .member-card.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success-green) 0%, #10b981 100%);
+            border-radius: 4px;
+            transition: width 0.8s ease;
+        }
+
+        .footer {
+            background: #f8fafc;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2rem; }
+            .sprint-info { grid-template-columns: 1fr; }
+            .members-grid { grid-template-columns: 1fr; }
+            .overview-stats { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 더크로싱랩 애자일 스프린트 대시보드</h1>
+            <div class="subtitle">2025년 9월 15일 ~ 9월 26일 (2주차 스프린트)</div>
+
+            <div class="sprint-info">
+                <div class="info-card">
+                    <h3>스프린트 기간</h3>
+                    <div class="value">12일</div>
+                </div>
+                <div class="info-card">
+                    <h3>제출률</h3>
+                    <div class="value">76.9%</div>
+                </div>
+                <div class="info-card">
+                    <h3>참여 인원</h3>
+                    <div class="value">13명</div>
+                </div>
+                <div class="info-card">
+                    <h3>회의 일정</h3>
+                    <div class="value">9/29(월)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- 전체 통계 섹션 -->
+            <div class="overview-stats">
+                <div class="stat-card">
+                    <h3>총 계획 스토리포인트</h3>
+                    <div class="number">230.5점</div>
+                </div>
+                <div class="stat-card">
+                    <h3>총 완료 스토리포인트</h3>
+                    <div class="number">196.55점</div>
+                </div>
+                <div class="stat-card">
+                    <h3>평균 완료율</h3>
+                    <div class="number">85.3%</div>
+                </div>
+                <div class="stat-card">
+                    <h3>보고서 제출</h3>
+                    <div class="number">10/13명</div>
+                </div>
+            </div>
+
+            <!-- 미제출 멤버 섹션 -->
+            <div class="missing-members">
+                <h3>📋 보고서 미제출 멤버 (3명)</h3>
+                <p style="color: #64748b; margin: 10px 0; font-size: 0.95rem;">⚠️ 아래 3명은 제출 마감일(9/26) 이후에 보고서를 제출하였습니다. (9/30 제출)</p>
+                <div class="missing-list">
+                    <span class="missing-member">조상원</span>
+                    <span class="missing-member">노남권</span>
+                    <span class="missing-member">안준홍</span>
+                </div>
+                <a href="late-submission.html" style="display: inline-block; margin-top: 15px; padding: 12px 24px; background: linear-gradient(135deg, #ea580c, #c2410c); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(234, 88, 12, 0.3);">
+                    → 지연 제출 보고서 보기 (3명, 53점)
+                </a>
+            </div>
+
+            <!-- 멤버별 상세 정보 -->
+            <div class="members-grid">
+                <!-- 양지석 -->
+                <div class="member-card" onclick="toggleMemberDetails(this)">
+                    <div class="member-header">
+                        <div class="member-name">👨‍💼 양지석 (개발실장)</div>
+                        <div class="member-stats">
+                            <span>총 68점 → 63점</span>
+                            <span class="completion-rate excellent">92.6%</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 92.6%"></div>
+                        </div>
+                    </div>
+                    <div class="member-details">
+                        <div class="task-item">
+                            <div class="task-title">SuperPlat PC 소프트런칭 대시보드 페이지 작성</div>
+                            <div class="task-meta">
+                                <span class="task-points">3점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>주간 회의에서 내용 발표 및 진행 결정</li>
+                                    <li>Slack 공지 전파</li>
+                                    <li><a href="https://jees0tcl.github.io/superplat_softlaunch_plan/" class="task-link">대시보드 링크</a></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">GBH(손에 들고 있는 아이템) 시스템 개선</div>
+                            <div class="task-meta">
+                                <span class="task-points">8점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>GBH 포인트 라이트 낮/밤 제어 시스템 구현</li>
+                                    <li>등불 애니메이션 적용 및 라이팅 추가</li>
+                                    <li>AnimInstanceHelper 클래스 구조화</li>
+                                    <li>DayNightLightManager 시스템 신규 개발</li>
+                                    <li><a href="https://the-crossing-lab.atlassian.net/wiki/x/BQB_Kw" class="task-link">TOD 시스템 문서</a></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">하이퍼드라이브(비행) 애니메이션 시스템</div>
+                            <div class="task-meta">
+                                <span class="task-points">5점</span>
+                                <span class="task-progress">75% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>Takeoff, Flying 애니메이션 상태 구현</li>
+                                    <li>애니메이션 블루프린트 수정 (ABP_SuperPlat)</li>
+                                    <li>열거형 에셋 추가 (E_HyperdriveTransition)</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">롱빈터 스타일 채팅 시스템 구현 1차</div>
+                            <div class="task-meta">
+                                <span class="task-points">8점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>Enter 키로 캐릭터 머리 위 직접 채팅 입력 구현</li>
+                                    <li>입력 및 출력 듀얼 모드 위젯 처리</li>
+                                    <li>채팅버블 스케일 업/다운 애니메이션 처리</li>
+                                    <li>채팅버블 스택 시스템 구현</li>
+                                    <li>상태 전환 사운드 피드백</li>
+                                    <li><a href="https://the-crossing-lab.atlassian.net/wiki/x/AQDpKw" class="task-link">시스템 설계 문서</a></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">롱빈터 스타일 채팅 시스템 구현 2차</div>
+                            <div class="task-meta">
+                                <span class="task-points">8점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>1차 피드백 반영 및 신규 사운드 애셋 추가</li>
+                                    <li>IOCP 서버 통신 처리</li>
+                                    <li>로컬/리모트 플레이어 채팅 처리 로직 분리</li>
+                                    <li>욕설 필터 적용</li>
+                                    <li>한글 IME 개선</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">SuperPlatCharacter 커스터마이징 통합</div>
+                            <div class="task-meta">
+                                <span class="task-points">3점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>툰 셰이더 토글 추가</li>
+                                    <li>Toon Shader Revert Logic 수정</li>
+                                    <li>일관된 규칙 적용</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">모바일 레이어드 패럴랙스 머티리얼 세팅</div>
+                            <div class="task-meta">
+                                <span class="task-points">5점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>머티리얼 노드 수정</li>
+                                    <li>텍스쳐 제작</li>
+                                    <li>포토카드 BP 제작</li>
+                                    <li>포토카드 테스트 레벨 제작</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">모바일 환경 설정</div>
+                            <div class="task-meta">
+                                <span class="task-points">3점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>LOD Setting 프로파일 수정</li>
+                                    <li>모바일 전용 렌더링 패스 일관화</li>
+                                    <li>안드로이드 KeyStore 생성 및 설정</li>
+                                    <li>모바일 HDR On</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">모바일 InGamePawn 카메라 시스템 개선</div>
+                            <div class="task-meta">
+                                <span class="task-points">3점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>카메라 Look At 시스템 구현</li>
+                                    <li>카메라 제어 파라미터 추가</li>
+                                    <li>Screen 배경 위치 조정</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">기타 작업들</div>
+                            <div class="task-meta">
+                                <span class="task-points">기타 다수</span>
+                                <span class="task-progress">대부분 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>리듬 존 미디어 플레이어 테스트 (5점, 100%)</li>
+                                    <li>콘텐츠 뷰 연관 작업 (1점, 100%)</li>
+                                    <li>패키징 및 빌드 설정 (1점, 100%)</li>
+                                    <li>모바일 레벨 조명 설정 (2점, 100%)</li>
+                                    <li>커스터마이징 툴 수정 (1.5점, 100%)</li>
+                                    <li>모바일 레이어드 패럴랙스 설정 (5점, 25%)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 김민수 -->
+                <div class="member-card" onclick="toggleMemberDetails(this)">
+                    <div class="member-header">
+                        <div class="member-name">👨‍💻 김민수</div>
+                        <div class="member-stats">
+                            <span>총 40점 → 29.3점</span>
+                            <span class="completion-rate good">73%</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 73%"></div>
+                        </div>
+                    </div>
+                    <div class="member-details">
+                        <div class="task-item">
+                            <div class="task-title">모바일 터치 카드 로테이션 시스템 구현</div>
+                            <div class="task-meta">
+                                <span class="task-points">5점</span>
+                                <span class="task-progress">90% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>핀치, 제스처 등 멀티터치 입력 처리 시스템 구현</li>
+                                    <li>아이돌 포토카드 로테이션 기능 구현</li>
+                                    <li>별도 라이브러리 형태로 프로젝트 재사용 가능</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">캐러셀 UMG 위젯 개발</div>
+                            <div class="task-meta">
+                                <span class="task-points">5점</span>
+                                <span class="task-progress">60% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>터치 가능한 무한순환 위젯 구현 시도</li>
+                                    <li>여러 방식 실험 후 Common UI Carousel 위젯으로 대체</li>
+                                    <li>기능은 구현했으나 목표한 커스텀 위젯 형태는 미달성</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">나레이션 애니메이트 UMG 모듈화</div>
+                            <div class="task-meta">
+                                <span class="task-points">8점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>타이핑 효과 텍스트 애니메이션 구현</li>
+                                    <li>FallingAnimatedText (낙하 애니메이션) 추가 구현</li>
+                                    <li>텍스트 속도 조절 기능</li>
+                                    <li>구두점(.), 개행 시 자연스러운 일시정지 효과</li>
+                                    <li>UserWidget 상속 플러그인 수준 모듈화</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">챗봇 V3 클라이언트 제작</div>
+                            <div class="task-meta">
+                                <span class="task-points">5점</span>
+                                <span class="task-progress">80% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>피그마 디자인 기반 UI 전체 구현</li>
+                                    <li>서버 API 연동 (Swagger 기반 자동화 프로세스)</li>
+                                    <li>네트워크 스트럭처 동기화 및 API 게이트 처리</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">챗봇 V3.1 클라이언트 제작</div>
+                            <div class="task-meta">
+                                <span class="task-points">5점</span>
+                                <span class="task-progress">80% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>V3와 완전히 다른 새로운 UI/UX 구현</li>
+                                    <li>피그마 디자인 기반 세부 UI 요소 적용</li>
+                                    <li>서버 API 연동 및 블루프린트 작업</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">기타 모바일 시스템 개발</div>
+                            <div class="task-meta">
+                                <span class="task-points">기타</span>
+                                <span class="task-progress">부분 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>모바일 터치 캐릭터 인터렉션 시스템 (3점, 60%)</li>
+                                    <li>나이아가라 UI 렌더러 터치 이펙트 모듈화 (5점, 70%)</li>
+                                    <li>안드로이드/iOS 패키징 시스템 구축 (5점, 60%)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 홍서의 -->
+                <div class="member-card" onclick="toggleMemberDetails(this)">
+                    <div class="member-header">
+                        <div class="member-name">👨‍💻 홍서의</div>
+                        <div class="member-stats">
+                            <span>총 11점 → 9.8점</span>
+                            <span class="completion-rate good">89.1%</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 89.1%"></div>
+                        </div>
+                    </div>
+                    <div class="member-details">
+                        <!-- 9/22 보고서 내용 -->
+                        <div class="task-item">
+                            <div class="task-title">Zone 활동 정보 창 호출 버튼 영역 위치 변경</div>
+                            <div class="task-meta">
+                                <span class="task-points">1점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>Zone 활동 정보 창 호출 버튼 영역 위치 변경</li>
+                                    <li>디자인이 변경됨에 따라 UX 로직 수정</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">Myspace 가입자 & 비가입자 nameplate 색상 변경</div>
+                            <div class="task-meta">
+                                <span class="task-points">2점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>Myspace에서 호스트, 게스트, 팬에 따른 nameplate 색상 구분</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">하단 메뉴 정리</div>
+                            <div class="task-meta">
+                                <span class="task-points">1점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>설정 메뉴 삭제</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">적용하기/종료하기 UX 보강</div>
+                            <div class="task-meta">
+                                <span class="task-points">1점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>적용하기 버튼 변경된 사항이 있을 경우에만 활성화</li>
+                                    <li>적용하기 버튼 누른 후 토스트 메시지 출력</li>
+                                    <li>적용하기 버튼을 누르지 않았을 때 종료하기 버튼 누르면 팝업 메뉴 출력</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- 9/29 보고서 추가 내용 -->
+                        <div class="task-item">
+                            <div class="task-title">기본 설정 탭 내용 확장</div>
+                            <div class="task-meta">
+                                <span class="task-points">3점</span>
+                                <span class="task-progress">80% 완료 (2.4점)</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>검색 키워드 설정 버튼</li>
+                                    <li>Myspace 검색 키워드 타이틀 문구</li>
+                                    <li>텍스트 입력 박스</li>
+                                    <li>등록 버튼</li>
+                                    <li>등록된 키워드 영역</li>
+                                    <li>관심 주제 타이틀 문구</li>
+                                    <li>관심 주제 관련 안내 텍스트</li>
+                                    <li>관심 주제 체크 박스 영역</li>
+                                    <li>닫기 버튼</li>
+                                    <li>팝업 크기 자동 조절</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">팬 관리 탭 내용 확장</div>
+                            <div class="task-meta">
+                                <span class="task-points">3점</span>
+                                <span class="task-progress">80% 완료 (2.4점)</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>검색어 입력 영역</li>
+                                    <li>검색 버튼</li>
+                                    <li>팬 목록 영역</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 류제일 -->
+                <div class="member-card" onclick="toggleMemberDetails(this)">
+                    <div class="member-header">
+                        <div class="member-name">👨‍💻 류제일</div>
+                        <div class="member-stats">
+                            <span>총 8점 → 8점</span>
+                            <span class="completion-rate excellent">100%</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="member-details">
+                        <div class="task-item">
+                            <div class="task-title">Chatbot Component 제작</div>
+                            <div class="task-meta">
+                                <span class="task-points">5점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>기존 미미 Chatbot과 겹치는 것을 방지하기 위해 폴더 정리</li>
+                                    <li>C++로 ChatbotComponent 제작</li>
+                                    <li>개인 Developer 폴더에 프로토타입 맵과 캐릭터, 애니메이션 따로 만들어 기존 코드와 분리</li>
+                                    <li>UI 제작 및 관련 머티리얼 제작</li>
+                                    <li>선 BP 제작 후 C++ 코드로 변환</li>
+                                    <li>UI 피드백 적용</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">Emotion AI 대화</div>
+                            <div class="task-meta">
+                                <span class="task-points">3점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>서버에서 내려오는 값을 몽타주로 실행</li>
+                                    <li>서버에서 파싱 값 디버그</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 김하혜 -->
+                <div class="member-card" onclick="toggleMemberDetails(this)">
+                    <div class="member-header">
+                        <div class="member-name">🎨 김하혜 (UI 디자이너)</div>
+                        <div class="member-stats">
+                            <span>총 6.5점 → 6.5점</span>
+                            <span class="completion-rate excellent">100%</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="member-details">
+                        <div class="task-item">
+                            <div class="task-title">IP ZONE B2B 아이콘 제작</div>
+                            <div class="task-meta">
+                                <span class="task-points">1점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>IP ZONE B2B존 생성 및 차별화 기획 보강에 따른 단독 B2B 아이콘 제작</li>
+                                    <li><a href="https://www.figma.com/design/VbmP10yug6xZ4lbdvwU4oL/oneofus?node-id=23521-28186&t=9QOydzeIrct2vMpj-4" class="task-link">피그마 링크</a></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">적용하기/종료하기 UX 보강 반영 디자인</div>
+                            <div class="task-meta">
+                                <span class="task-points">0.5점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>IP ZONE 스페이스 에디트 기획 보강에 따른 디자인 반영</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">IP ZONE Name plate 색상 테스트</div>
+                            <div class="task-meta">
+                                <span class="task-points">0.5점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>IP ZONE 입장 시 소유주, 가입자, 비가입자 구분에 따른 색상 테스트 반영 완료</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">ZONE 활동 정보 창 UI 보강</div>
+                            <div class="task-meta">
+                                <span class="task-points">1점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>소유주, 일반, B2B 각기 존의 활동 정보창 디자인 반영</li>
+                                    <li>가입전/후의 디자인 필요</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">AI 대화 UI 구현</div>
+                            <div class="task-meta">
+                                <span class="task-points">1점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>AI 챗봇 1:1대화 버전 시나리오 제작</li>
+                                    <li>대화 펼쳐보기 UI 제작</li>
+                                    <li><a href="https://www.figma.com/design/VbmP10yug6xZ4lbdvwU4oL/oneofus?node-id=23592-1435&t=9QOydzeIrct2vMpj-4" class="task-link">피그마 링크</a></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">AI 대화 말풍선 애니메이션 레퍼런스 리서치</div>
+                            <div class="task-meta">
+                                <span class="task-points">0.5점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>AI 챗봇 말풍선 애니메이션 레퍼런스 리서치 및 공유 완료</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">마이스토리 기능 보강 디자인</div>
+                            <div class="task-meta">
+                                <span class="task-points">2점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>마이 스토리 스크린샷 기능 추가 (촬영모드/앨범)</li>
+                                    <li>마이스토리&보드 신고하기 기능 반영</li>
+                                    <li><a href="https://www.figma.com/design/VbmP10yug6xZ4lbdvwU4oL/oneofus?node-id=23521-28810&t=9QOydzeIrct2vMpj-4" class="task-link">피그마 링크 1</a></li>
+                                    <li><a href="https://www.figma.com/design/VbmP10yug6xZ4lbdvwU4oL/oneofus?node-id=23614-24228&t=9QOydzeIrct2vMpj-4" class="task-link">피그마 링크 2</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 신하리 -->
+                <div class="member-card" onclick="toggleMemberDetails(this)">
+                    <div class="member-header">
+                        <div class="member-name">🎨 신하리 (모바일 UI)</div>
+                        <div class="member-stats">
+                            <span>총 45점 → 45점</span>
+                            <span class="completion-rate excellent">100%</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="member-details">
+                        <div class="task-item">
+                            <div class="task-title">V3 시안 제작 로그인 화면 UI 제작</div>
+                            <div class="task-meta">
+                                <span class="task-points">32점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>AI 선택지 1차: 공개/비공개 2가지 타입 디자인 포함 (8점)</li>
+                                    <li>AI 선택지 2차: 일상 대화, 스토리 버튼 등 디자인 포함 (8점)</li>
+                                    <li>채팅 UI: 인트로 화면, 채팅 내용 표시, 선택지 타입 디자인 포함 (13점)</li>
+                                    <li>UI 제작 및 배경 영상 (3점)</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">V3 레퍼런스 수집</div>
+                            <div class="task-meta">
+                                <span class="task-points">5점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>디자인 레퍼런스 조사 및 수집</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">스토리별 배경 시안 제작 (3.1ver)</div>
+                            <div class="task-meta">
+                                <span class="task-points">1점</span>
+                                <span class="task-progress">100% 완료</span>
+                                <span class="jira-link"><a href="https://the-crossing-lab.atlassian.net/browse/SV-39" target="_blank">SV-39</a></span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>3.1 버전 업데이트에 필요한 스토리별 배경 시안 디자인</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">포토카드 시안 제작</div>
+                            <div class="task-meta">
+                                <span class="task-points">5점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>포토카드 기능에 대한 신규 UXUI 시안</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">V3.1 수정 시안</div>
+                            <div class="task-meta">
+                                <span class="task-points">2점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>V3.1 관련 기존 시안에 대한 수정 작업</li>
+                                    <li>채팅, 마스킹, 선택지 UI 수정</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 임준영 -->
+                <div class="member-card" onclick="toggleMemberDetails(this)">
+                    <div class="member-header">
+                        <div class="member-name">👨‍💻 임준영 (서버 개발)</div>
+                        <div class="member-stats">
+                            <span>총 37점 → 23.5점</span>
+                            <span class="completion-rate average">63.5%</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 63.5%"></div>
+                        </div>
+                    </div>
+                    <div class="member-details">
+                        <div class="task-item">
+                            <div class="task-title">V3.1 기능 구현</div>
+                            <div class="task-meta">
+                                <span class="task-points">8점</span>
+                                <span class="task-progress">100% 완료</span>
+                                <span class="jira-link"><a href="https://the-crossing-lab.atlassian.net/browse/SV-41" target="_blank">SV-41</a></span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>Character V3.1 시나리오 기반 스토리 시스템 구현</li>
+                                    <li>이벤트 시스템 (PHOTO_CARD, TOUCH) 개발</li>
+                                    <li>responseName 필드 추가 및 backgroundMedia 분리</li>
+                                    <li>스토리 진행 API 엔드포인트 완성</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">포토카드 지급 기능</div>
+                            <div class="task-meta">
+                                <span class="task-points">3점</span>
+                                <span class="task-progress">100% 완료</span>
+                                <span class="jira-link"><a href="https://the-crossing-lab.atlassian.net/browse/SV-44" target="_blank">SV-44</a></span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>포토카드 이벤트 시스템 구현</li>
+                                    <li>eventData JSON 구조 설계 및 구현</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">캐릭터 터치 상호작용 지시 기능</div>
+                            <div class="task-meta">
+                                <span class="task-points">3점</span>
+                                <span class="task-progress">100% 완료</span>
+                                <span class="jira-link"><a href="https://the-crossing-lab.atlassian.net/browse/SV-45" target="_blank">SV-45</a></span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>터치 상호작용 API 구현</li>
+                                    <li>터치 이벤트 데이터 처리</li>
+                                    <li>eventType: TOUCH 시스템 연동</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">감정 분석 기능 구현</div>
+                            <div class="task-meta">
+                                <span class="task-points">2점</span>
+                                <span class="task-progress">100% 완료</span>
+                                <span class="jira-link"><a href="https://the-crossing-lab.atlassian.net/browse/ST-4" target="_blank">ST-4</a></span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>사용자 감정 분석 AI 모델 연동</li>
+                                    <li>감정 데이터 처리 로직 구현</li>
+                                    <li>실시간 감정 분석 기능 개발</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">기타 서버 개발 작업</div>
+                            <div class="task-meta">
+                                <span class="task-points">기타 다수</span>
+                                <span class="task-progress">완료/진행중</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>모델 업데이트 (GPT-5-mini → Gemini-2.5-flash) (1점, 100%) <a href="https://the-crossing-lab.atlassian.net/browse/ST-14" target="_blank">ST-14</a></li>
+                                    <li>영상 안드로이드 호환 코덱 변경 (0.5점, 100%) <a href="https://the-crossing-lab.atlassian.net/browse/SV-51" target="_blank">SV-51</a></li>
+                                    <li>V2 씬 진행 JSON 파싱 에러 수정 (0.5점, 100%) <a href="https://the-crossing-lab.atlassian.net/browse/SV-36" target="_blank">SV-36</a></li>
+                                    <li>V3 개선 작업 (스크럼 피드백 기반) (1점, 100%) <a href="https://the-crossing-lab.atlassian.net/browse/SV-70" target="_blank">SV-70</a></li>
+                                    <li>캐릭터 표정 추출 (1점, 100%) <a href="https://the-crossing-lab.atlassian.net/browse/SV-26" target="_blank">SV-26</a></li>
+                                    <li>스토리 생성 시스템 구축 (8점, 진행중) <a href="https://the-crossing-lab.atlassian.net/browse/SV-49" target="_blank">SV-49</a></li>
+                                    <li>API 요청 필드명 표준화 (0.5점, 100%) <a href="https://the-crossing-lab.atlassian.net/browse/SV-67" target="_blank">SV-67</a></li>
+                                    <li>V3 랜덤 스토리 제거 (0.5점, 100%) <a href="https://the-crossing-lab.atlassian.net/browse/SV-61" target="_blank">SV-61</a></li>
+                                    <li>토큰 비용 계산 문서 작성 (0.5점, 100%) <a href="https://the-crossing-lab.atlassian.net/browse/SV-68" target="_blank">SV-68</a></li>
+                                    <li>챗봇 응답 DTO Swagger 명시 (0.5점, 100%) <a href="https://the-crossing-lab.atlassian.net/browse/ST-15" target="_blank">ST-15</a></li>
+                                    <li>챗봇 응답 필드 전처리 (0.5점, 100%) <a href="https://the-crossing-lab.atlassian.net/browse/ST-16" target="_blank">ST-16</a></li>
+                                    <li>V3 상시 혼합형 기능 추가 (1점, 100%) <a href="https://the-crossing-lab.atlassian.net/browse/SV-62" target="_blank">SV-62</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 이재원 -->
+                <div class="member-card" onclick="toggleMemberDetails(this)">
+                    <div class="member-header">
+                        <div class="member-name">📋 이재원 (기획)</div>
+                        <div class="member-stats">
+                            <span>총 4점 → 4점</span>
+                            <span class="completion-rate excellent">100%</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="member-details">
+                        <div class="task-item">
+                            <div class="task-title">IP ZONE 기획 리뷰 피드백 사항 정리</div>
+                            <div class="task-meta">
+                                <span class="task-points">1점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>IP ZONE 관리자 메뉴, IP ZONE 가입 & 취소, ZONE 등급 추가 기획 리뷰</li>
+                                    <li>받은 피드백 의견을 정리하여 각 기획서 페이지에 내용 반영</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">B2B ZONE 전용 에디터 모드 기획 정리</div>
+                            <div class="task-meta">
+                                <span class="task-points">1점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>BMA와 같은 B2B 전용 ZONE의 소유자 입장에서의 ZONE 에디터 모드 동작 사항 기획 정리</li>
+                                    <li><a href="https://the-crossing-lab.atlassian.net/wiki/spaces/TCLCOM/pages/595689492/IP+Zone#B2B-%EC%A0%84%EC%9A%A9-IP-ZONE%EB%A6%AC%EB%B7%B0-%EB%AF%B8%EC%A7%84%ED%96%89" class="task-link">기획 문서 링크</a></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">IP ZONE 기본 UI 개편 기획</div>
+                            <div class="task-meta">
+                                <span class="task-points">1점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>ZONE 소유자 입장 & 방문자 입장에서 IP ZONE 진입 시 보여지는 UI 개편 사항 기획</li>
+                                    <li><a href="https://the-crossing-lab.atlassian.net/wiki/spaces/TCLCOM/pages/609484809/IP+Zone#IP-ZONE-%EA%B0%80%EC%9E%85%EC%9E%90-&-%EB%B9%84%EA%B0%80%EC%9E%85%EC%9E%90-name-plate-%EC%83%89%EC%83%81-%EA%B5%AC%EB%B6%84%EC%8B%9C%ED%82%A4%EA%B8%B09%EC%9B%941%EC%B0%A8-%EC%8A%A4%ED%94%84%EB%A6%B0%ED%8A%B8" class="task-link">기획 문서 링크</a></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">9월 1차 스프린트 대상 테스트</div>
+                            <div class="task-meta">
+                                <span class="task-points">1점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>9월 1차 스프린트 대상으로 구현된 작업물에 대해 명세 사항 100% 만족될 때까지 테스트 & 피드백</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 김진형 -->
+                <div class="member-card" onclick="toggleMemberDetails(this)">
+                    <div class="member-header">
+                        <div class="member-name">📋 김진형 (기획)</div>
+                        <div class="member-stats">
+                            <span>총 14.5점 → 9.5점</span>
+                            <span class="completion-rate average">65.5%</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 65.5%"></div>
+                        </div>
+                    </div>
+                    <div class="member-details">
+                        <div class="task-item">
+                            <div class="task-title">ST-1 AI 대화 리뉴얼 기획서 작성</div>
+                            <div class="task-meta">
+                                <span class="task-points">3점</span>
+                                <span class="task-progress">100% 완료</span>
+                                <span class="jira-link"><a href="https://the-crossing-lab.atlassian.net/browse/ST-1" target="_blank">ST-1</a></span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>SuperTown AI NPC 대화 시스템 리뉴얼 기획</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">ST-1 NPC '제로' Persona 제작</div>
+                            <div class="task-meta">
+                                <span class="task-points">0.5점</span>
+                                <span class="task-progress">100% 완료</span>
+                                <span class="jira-link"><a href="https://the-crossing-lab.atlassian.net/browse/ST-1" target="_blank">ST-1</a></span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>SuperTown NPC 캐릭터 '제로'의 페르소나 설정 작업</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">ST-1 스프린트 1 테스트 및 피드백</div>
+                            <div class="task-meta">
+                                <span class="task-points">3점</span>
+                                <span class="task-progress">100% 완료</span>
+                                <span class="jira-link"><a href="https://the-crossing-lab.atlassian.net/browse/ST-1" target="_blank">ST-1</a></span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>1차 스프린트 결과물에 대한 테스트 및 피드백 작업</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">ST-2 깜짝 이벤트(UFO) Flow 및 기획 초안</div>
+                            <div class="task-meta">
+                                <span class="task-points">3점</span>
+                                <span class="task-progress">100% 완료</span>
+                                <span class="jira-link"><a href="https://the-crossing-lab.atlassian.net/browse/ST-2" target="_blank">ST-2</a></span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>SuperTown 깜짝 이벤트 시스템 기획 초안 작성</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">ST-2 깜짝 이벤트(UFO) 시스템 기획 작성 및 킥오프</div>
+                            <div class="task-meta">
+                                <span class="task-points">5점</span>
+                                <span class="task-progress">진행중</span>
+                                <span class="jira-link"><a href="https://the-crossing-lab.atlassian.net/browse/ST-2" target="_blank">ST-2</a></span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>SuperTown 깜짝 이벤트 시스템 상세 기획 및 개발팀 킥오프</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">ST_2 깜짝 이벤트(UFO) 시스템 기획 작성 및 킥오프</div>
+                            <div class="task-meta">
+                                <span class="task-points">5점</span>
+                                <span class="task-progress">진행중</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>깜짝 이벤트 시스템 상세 기획서 작성</li>
+                                    <li>개발팀과의 킥오프 미팅 준비</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 최진우 -->
+                <div class="member-card" onclick="toggleMemberDetails(this)">
+                    <div class="member-header">
+                        <div class="member-name">👨‍💻 최진우 (풀스택)</div>
+                        <div class="member-stats">
+                            <span>총 8.5점 → 8.5점</span>
+                            <span class="completion-rate excellent">100%</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="member-details">
+                        <div class="task-item">
+                            <div class="task-title">마이스페이스 신규 생성 추가 개발</div>
+                            <div class="task-meta">
+                                <span class="task-points">0.5점</span>
+                                <span class="task-progress">100% 완료</span>
+                                <span class="jira-link"><a href="https://the-crossing-lab.atlassian.net/browse/SB-533" target="_blank">SB-533</a></span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>백엔드 API 마이스페이스 신규 생성 기능 개발</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">마이스페이스 인벤토리 추가 개발</div>
+                            <div class="task-meta">
+                                <span class="task-points">1점</span>
+                                <span class="task-progress">100% 완료</span>
+                                <span class="jira-link"><a href="https://the-crossing-lab.atlassian.net/browse/SB-543" target="_blank">SB-543</a></span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>백엔드 API 마이스페이스 인벤토리 기능 개발</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">팬 관리 확장 탭 - 팬 검색 기능</div>
+                            <div class="task-meta">
+                                <span class="task-points">0.5점</span>
+                                <span class="task-progress">100% 완료</span>
+                                <span class="jira-link"><a href="https://the-crossing-lab.atlassian.net/browse/SB-534" target="_blank">SB-534</a></span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>백엔드 API 마이스페이스 팬 검색 기능 개발</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">미니 프로필 이미지 삭제 (버그 수정)</div>
+                            <div class="task-meta">
+                                <span class="task-points">0.5점</span>
+                                <span class="task-progress">100% 완료</span>
+                                <span class="jira-link"><a href="https://the-crossing-lab.atlassian.net/browse/SB-542" target="_blank">SB-542</a></span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>백엔드 API 미니 프로필 이미지 삭제 버그 수정</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">서비스 홈페이지 회원가입 Depth 감소</div>
+                            <div class="task-meta">
+                                <span class="task-points">0.5점</span>
+                                <span class="task-progress">100% 완료</span>
+                                <span class="jira-link"><a href="https://the-crossing-lab.atlassian.net/browse/SB-526" target="_blank">SB-526</a></span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>프론트엔드 서비스 홈페이지 회원가입 UX 개선</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="task-item">
+                            <div class="task-title">운영툴 개발 작업</div>
+                            <div class="task-meta">
+                                <span class="task-points">6.5점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+                                <ul>
+                                    <li>운영툴 공지 관리 - 공지 목록 페이지 개발 (1점) <a href="https://the-crossing-lab.atlassian.net/browse/SB-403" target="_blank">SB-403</a></li>
+                                    <li>운영툴 공지 관리 - 홈페이지 공지사항 발행 페이지 개발 (1점) <a href="https://the-crossing-lab.atlassian.net/browse/SB-482" target="_blank">SB-482</a></li>
+                                    <li>운영툴 서버 및 패치 - 패치 목록 페이지 개발 (1점) <a href="https://the-crossing-lab.atlassian.net/browse/SB-402" target="_blank">SB-402</a></li>
+                                    <li>운영툴 서버 및 패치 - 패치 적용/커밋 페이지 개발 (1점) <a href="https://the-crossing-lab.atlassian.net/browse/SB-481" target="_blank">SB-481</a></li>
+                                    <li>운영툴 신고/버그 검토 - FAQ 페이지 개발 (1점) <a href="https://the-crossing-lab.atlassian.net/browse/SB-518" target="_blank">SB-518</a></li>
+                                    <li>운영툴 신고/버그 검토 - 버그/1:1 문의 목록 페이지 개발 (1점) <a href="https://the-crossing-lab.atlassian.net/browse/SB-517" target="_blank">SB-517</a></li>
+                                    <li>운영툴 프로젝트 분리 <a href="https://the-crossing-lab.atlassian.net/browse/SB-367" target="_blank">SB-367</a></li>
+                                    <li>리뉴얼된 운영툴 서버 개발 (0.5점) <a href="https://the-crossing-lab.atlassian.net/browse/SB-532" target="_blank">SB-532</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 슬랙봇 섹션 -->
+            <div class="slackbot-section">
+                <h3>🤖 슬랙봇 개발 계획</h3>
+                <p><strong>개발 담당:</strong> 양지석 개발실장 직접 개발 예정</p>
+                <p><strong>방식:</strong> 슬랙 채널에서 스프린트 리포트 제출 및 조회</p>
+                <p><strong>기능:</strong> 수집 자동화, 대시 보드 자동화</p>
+            </div>
+
+            <!-- 태그 시스템 제안 -->
+            <div class="proposals-section">
+                <h3>🏷️ 태그 시스템 제안</h3>
+                <p>프로젝트별, 업무 유형별 태그 시스템을 도입하여 보고서 분류 및 통계 분석을 개선할 수 있습니다.</p>
+
+                <div class="tag-examples">
+                    <div class="tag-example">
+                        <div class="tag">#PC</div>
+                        <div class="tag">#웹</div>
+                        <div class="tag">#모바일</div>
+						<div class="tag">#서버</div>
+                    </div>
+                    <div class="tag-example">
+                        <div class="tag">#UI/UX</div>
+                        <div class="tag">#백엔드</div>
+                        <div class="tag">#기획</div>
+						<div class="tag">#개발</div>
+                    </div>
+                    <div class="tag-example">
+                        <div class="tag">#긴급</div>
+                        <div class="tag">#보완필요</div>
+                        <div class="tag">#완료</div>
+                    </div>
+                    <div class="tag-example">
+                        <div class="tag">#디자인</div>
+                        <div class="tag">#신규기능</div>
+                        <div class="tag">#버그수정</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 회의 결정사항 -->
+            <div class="decisions-section">
+                <h3>📋 9/29(월) 회의 결정사항</h3>
+
+                <div class="decision-item">
+                    <strong>1. 보고서 제출률 개선 방안</strong>
+                    <ul>
+                        <li>슬랙봇 도입</li>
+                        <li>미제출자 대상 개별 피드백 및 지원</li>
+                    </ul>
+                </div>
+
+                <div class="decision-item">
+                    <strong>2. 스토리포인트 추정 정확도 향상</strong>
+                    <ul>
+                        <li>Planning Poker 세션 정기화</li>
+                        <li>완료율 70% 미만 작업에 대한 회고 진행</li>
+                    </ul>
+                </div>
+
+                <div class="decision-item">
+                    <strong>3. 태그 시스템 도입</strong>
+                    <ul>
+                        <li>프로젝트별, 업무 유형별 태그 체계 수립</li>
+                        <li>다음 스프린트부터 태그 사용 시범 운영</li>
+                    </ul>
+                </div>
+
+                <div class="decision-item">
+                    <strong>4. 다음 스프린트 계획</strong>
+                    <ul>
+                        <li>기간: 2025년 9월 30일 ~ 10월 11일</li>
+                        <li>미완료 작업 우선 처리</li>
+                        <li>모바일 플랫폼 최적화 집중</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>📊 더크로싱랩 애자일 스프린트 대시보드 | 생성일: 2025년 9월 28일</p>
+            <p>🤖 Claude AI와 함께 제작된 스프린트 보고서 통합 대시보드</p>
+        </div>
+    </div>
+
+    <script>
+        function toggleMemberDetails(card) {
+            const details = card.querySelector('.member-details');
+            const isExpanded = details.classList.contains('expanded');
+
+            // 모든 카드 접기
+            document.querySelectorAll('.member-card').forEach(c => {
+                c.classList.remove('expanded');
+                c.querySelector('.member-details').classList.remove('expanded');
+            });
+
+            // 클릭한 카드만 펼치기 (이미 펼쳐져 있지 않은 경우에만)
+            if (!isExpanded) {
+                card.classList.add('expanded');
+                details.classList.add('expanded');
+            }
+        }
+
+        // 페이지 로드 시 프로그레스 바 애니메이션
+        window.addEventListener('load', function() {
+            const progressBars = document.querySelectorAll('.progress-fill');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 500);
+            });
+        });
+
+        // 키보드 단축키 (ESC로 모든 카드 접기)
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.member-card').forEach(card => {
+                    card.classList.remove('expanded');
+                    card.querySelector('.member-details').classList.remove('expanded');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
