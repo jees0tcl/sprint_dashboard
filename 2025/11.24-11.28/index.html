@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>더크로싱랩 애자일 스프린트 통합 대시보드 - 11/24~11/28</title>
+    <style>
+        :root {
+            --primary-blue: #2563eb;
+            --success-green: #16a34a;
+            --warning-orange: #ea580c;
+            --danger-red: #dc2626;
+            --background-light: #f8fafc;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, #1e40af 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .sprint-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .info-card h3 {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-card .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .highlight-section {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #f59e0b;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .highlight-section h3 {
+            color: #92400e;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        .highlight-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .highlight-section li {
+            background: white;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 4px solid #f59e0b;
+            color: #1f2937;
+            line-height: 1.6;
+        }
+
+        .highlight-section strong {
+            color: #92400e;
+        }
+
+        .overview-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: var(--background-light);
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-blue);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-card h3 {
+            color: #374151;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card .number {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .members-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .member-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+        }
+
+        .member-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .member-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .member-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .member-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+
+        .completion-rate {
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            color: white;
+        }
+
+        .completion-rate.excellent { background: var(--success-green); }
+        .completion-rate.good { background: #059669; }
+        .completion-rate.average { background: var(--warning-orange); }
+        .completion-rate.poor { background: var(--danger-red); }
+
+        .member-details {
+            padding: 20px;
+            display: none;
+        }
+
+        .member-details.expanded {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .task-item {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .task-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .jira-link a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            padding: 2px 8px;
+            background: rgba(37, 99, 235, 0.1);
+            border-radius: 4px;
+            font-size: 0.85rem;
+            transition: background 0.2s ease;
+        }
+
+        .jira-link a:hover {
+            background: rgba(37, 99, 235, 0.2);
+            text-decoration: underline;
+        }
+
+        .task-points {
+            background: var(--primary-blue);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .task-progress {
+            background: var(--success-green);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .task-progress.partial {
+            background: var(--warning-orange);
+        }
+
+        .task-details {
+            color: #4b5563;
+            line-height: 1.5;
+            white-space: pre-line;
+        }
+
+        .task-details ul {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .task-details li {
+            margin-bottom: 4px;
+        }
+
+        .task-link {
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .task-link:hover {
+            text-decoration: underline;
+        }
+
+        .expand-icon {
+            float: right;
+            transition: transform 0.3s ease;
+            font-size: 1.2rem;
+            color: #6b7280;
+        }
+
+        .member-card.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success-green) 0%, #10b981 100%);
+            border-radius: 4px;
+            transition: width 0.8s ease;
+        }
+
+        .footer {
+            background: #f8fafc;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2rem; }
+            .sprint-info { grid-template-columns: 1fr; }
+            .members-grid { grid-template-columns: 1fr; }
+            .overview-stats { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 더크로싱랩 애자일 스프린트 대시보드</h1>
+            <div class="subtitle">2025년 11월 24일 ~ 11월 28일 (4주차 스프린트)</div>
+
+            <div class="sprint-info">
+                <div class="info-card">
+                    <h3>스프린트 기간</h3>
+                    <div class="value">5일</div>
+                </div>
+                <div class="info-card">
+                    <h3>제출 인원</h3>
+                    <div class="value">9명</div>
+                </div>
+                <div class="info-card">
+                    <h3>완료율</h3>
+                    <div class="value">97.8%</div>
+                </div>
+                <div class="info-card">
+                    <h3>총 스토리포인트</h3>
+                    <div class="value">90점</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- 주요 하이라이트 -->
+            <div class="highlight-section">
+                <h3>✨ 이번 스프린트 주요 성과</h3>
+                <ul>
+                    <li><strong>양지석</strong>: NPC_V2 Props 시스템 구현, 슈퍼플랫 전략 플로우 문서화</li>
+                    <li><strong>김민수</strong>: 스토리 시스템 API 전체 연동, UI/UX 개선, DPI 스케일링 설정</li>
+                    <li><strong>김진형</strong>: 펠월드 R&D 및 벤치마킹 문서 작성</li>
+                    <li><strong>노남권</strong>: 퀘스트/경험치/트로피 테이블 변경 작업</li>
+                    <li><strong>이재원</strong>: 타운홀 컨텐츠 기획, 패션 편집샵/은행 컨텐츠 구상</li>
+                    <li><strong>조상원</strong>: Weather 눈 쌓임 효과 메터리얼 적용, 버텍스 애니메이션</li>
+                    <li><strong>최진우</strong>: AppsFlyer 딥링크 개발, 환불 API 및 운영툴 페이지 개발</li>
+                    <li><strong>김하혜</strong>: Chat UMG, 공간 등급 UI, 프리셋 디자인, BASIC 모델 딤처리</li>
+                    <li><strong>신하리</strong>: 제보하기/채팅결제/마이페이지/결제내역 UI (18점)</li>
+                </ul>
+            </div>
+
+            <!-- 전체 통계 -->
+            <div class="overview-stats">
+                <div class="stat-card">
+                    <h3>총 계획 스토리포인트</h3>
+                    <div class="number">90점</div>
+                </div>
+                <div class="stat-card">
+                    <h3>완료 스토리포인트</h3>
+                    <div class="number">88점</div>
+                </div>
+                <div class="stat-card">
+                    <h3>평균 완료율</h3>
+                    <div class="number">97.8%</div>
+                </div>
+                <div class="stat-card">
+                    <h3>제출 인원</h3>
+                    <div class="number">9명</div>
+                </div>
+            </div>
+
+            <!-- 팀원별 상세 작업 -->
+            <h2 style="font-size: 1.8rem; margin-bottom: 25px; color: #1f2937;">👥 팀원별 작업 내역</h2>
+
+            <div class="members-grid">
+                <!-- 신하리 -->
+                <div class="member-card" onclick="toggleMemberDetails(this)">
+                    <div class="member-header">
+                        <div class="member-name">신하리</div>
+                        <div class="member-stats">
+                            <span>총 18점 → 18점</span>
+                            <span class="completion-rate excellent">100%</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="member-details">
+                        <div class="task-item">
+                            <div class="task-title">[UXUI] 제보하기 ui 추가</div>
+                            <div class="task-meta">
+                                <span class="task-points">4점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-title">[UXUI] 채팅-추가결제 ui</div>
+                            <div class="task-meta">
+                                <span class="task-points">4점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-title">[UXUI] 마이페이지</div>
+                            <div class="task-meta">
+                                <span class="task-points">4점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-title">[UXUI] 결제내역 ui 추가</div>
+                            <div class="task-meta">
+                                <span class="task-points">6점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 김진형 -->
+                <div class="member-card" onclick="toggleMemberDetails(this)">
+                    <div class="member-header">
+                        <div class="member-name">김진형</div>
+                        <div class="member-stats">
+                            <span>총 15점 → 15점</span>
+                            <span class="completion-rate excellent">100%</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="member-details">
+                        <div class="task-item">
+                            <div class="task-title">펠월드 R&D 및 벤치마킹 문서 작성</div>
+                            <div class="task-meta">
+                                <span class="task-points">15점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">
+- <a class="task-link" href="https://the-crossing-lab.atlassian.net/wiki/x/BwBHM" target="_blank">펠월드 R&D 문서 1</a>
+- <a class="task-link" href="https://the-crossing-lab.atlassian.net/wiki/x/AYBTM" target="_blank">펠월드 R&D 문서 2</a>
+- <a class="task-link" href="https://the-crossing-lab.atlassian.net/wiki/x/CoA9Lw" target="_blank">펠월드 R&D 문서 3</a></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 김민수 -->
+                <div class="member-card" onclick="toggleMemberDetails(this)">
+                    <div class="member-header">
+                        <div class="member-name">김민수</div>
+                        <div class="member-stats">
+                            <span>총 14점 → 14점</span>
+                            <span class="completion-rate excellent">100%</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="member-details">
+                        <div class="task-item">
+                            <div class="task-title">스토리 시스템 API 연동</div>
+                            <div class="task-meta">
+                                <span class="task-points">5점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">- API 연동 (스토리 관련) 완료
+- 스토리 발화 연동 구현
+- 프로필 이미지 연동
+- 레이아웃 파티클 시스템 연동</div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-title">UI/UX 개선 작업</div>
+                            <div class="task-meta">
+                                <span class="task-points">4점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">- 대보기 UI 변경
+- 에러로그 버튼 상태 반영
+- API 수정 및 화면 트리거 반영
+- 배너 주소값 추출 적용</div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-title">시나리오 및 에셋 관리</div>
+                            <div class="task-meta">
+                                <span class="task-points">3점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">- Merge 충돌 변경 해결
+- 시나리오 디테일 변경
+- 에셋 정리 및 최적화</div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-title">DPI 스케일링 설정</div>
+                            <div class="task-meta">
+                                <span class="task-points">2점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">- DPI Scaling Rule 설정 완료
+- 다양한 해상도 지원을 위한 스케일링 규칙 적용</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 최진우 -->
+                <div class="member-card" onclick="toggleMemberDetails(this)">
+                    <div class="member-header">
+                        <div class="member-name">최진우</div>
+                        <div class="member-stats">
+                            <span>총 10점 → 10점</span>
+                            <span class="completion-rate excellent">100%</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="member-details">
+                        <div class="task-item">
+                            <div class="task-title">[모바일][UE] AppsFlyer > 딥링크 > 안드로이드 Delegate 설정</div>
+                            <div class="task-meta">
+                                <span class="task-points">2점</span>
+                                <span class="task-progress">100% 완료</span>
+                                <span class="jira-link"><a href="https://the-crossing-lab.atlassian.net/browse/SB-620" target="_blank">SB-620</a></span>
+                            </div>
+                            <div class="task-details">- UE5 충돌로 인한 안드로이드 네이티브 언어 Delegate 작성</div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-title">[모바일/PC][BE] 프로모션 테이블 ↔ 스토어 테이블 고도화</div>
+                            <div class="task-meta">
+                                <span class="task-points">2점</span>
+                                <span class="task-progress">100% 완료</span>
+                                <span class="jira-link"><a href="https://the-crossing-lab.atlassian.net/browse/SB-618" target="_blank">SB-618</a></span>
+                            </div>
+                            <div class="task-details">- 설계 문서 작성 완료
+- <a class="task-link" href="https://the-crossing-lab.atlassian.net/wiki/x/IQASM" target="_blank">설계 문서</a></div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-title">[운영툴][BE] 선물한 우편 환불 API 개발</div>
+                            <div class="task-meta">
+                                <span class="task-points">3점</span>
+                                <span class="task-progress">100% 완료</span>
+                                <span class="jira-link"><a href="https://the-crossing-lab.atlassian.net/browse/SB-337" target="_blank">SB-337</a></span>
+                            </div>
+                            <div class="task-details">- 환불 관련 방어로직 추가 (우편함 판단 및 우편 강제 삭제)
+- 프로모션 관련 방어로직 추가 (환불 시 프로모션은 사용 처리)</div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-title">[운영툴][FE] 환불 신청 승인/반려 페이지 개발</div>
+                            <div class="task-meta">
+                                <span class="task-points">3점</span>
+                                <span class="task-progress">100% 완료</span>
+                                <span class="jira-link"><a href="https://the-crossing-lab.atlassian.net/browse/SB-324" target="_blank">SB-324</a></span>
+                            </div>
+                            <div class="task-details">- 환불 관련 검색 시 스토어, 프로모션, 결제 금액 추가 반환
+- 파생 이슈: 환불 신청 승인/반려 시 사용자 안내 고지 필요</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 조상원 -->
+                <div class="member-card" onclick="toggleMemberDetails(this)">
+                    <div class="member-header">
+                        <div class="member-name">조상원</div>
+                        <div class="member-stats">
+                            <span>총 10점 → 8점</span>
+                            <span class="completion-rate good">80%</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 80%"></div>
+                        </div>
+                    </div>
+                    <div class="member-details">
+                        <div class="task-item">
+                            <div class="task-title">[PC][R&D] Weather Interaction 눈 쌓임 효과 메터리얼 적용</div>
+                            <div class="task-meta">
+                                <span class="task-points">3점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-title">[PC][R&D] 버텍스 애니메이션 (cloth 재질) 자체 메터리얼 만들기</div>
+                            <div class="task-meta">
+                                <span class="task-points">2점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-title">[PC][R&D] 툰 메터리얼에 눈 쌓임 효과 적용</div>
+                            <div class="task-meta">
+                                <span class="task-points">1점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-title">[PC][R&D] 실내 및 웨더 이펙트 마스킹 볼륨활용 R&D</div>
+                            <div class="task-meta">
+                                <span class="task-points">4점</span>
+                                <span class="task-progress partial">50% 완료</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 김하혜 -->
+                <div class="member-card" onclick="toggleMemberDetails(this)">
+                    <div class="member-header">
+                        <div class="member-name">김하혜</div>
+                        <div class="member-stats">
+                            <span>총 7점 → 7점</span>
+                            <span class="completion-rate excellent">100%</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="member-details">
+                        <div class="task-item">
+                            <div class="task-title">[UMG] Chat UMG 수정</div>
+                            <div class="task-meta">
+                                <span class="task-points">1점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">- My Friends UI 디테일 수정
+- My Chat UI 디테일 수정
+- Ban list UI 디테일 수정
+- 채팅 리스트 서브 팝업 메뉴 디자인 추가 수정</div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-title">[UI] 공간 등급 정보 슬롯 제작</div>
+                            <div class="task-meta">
+                                <span class="task-points">1점</span>
+                                <span class="task-progress">100% 완료</span>
+                                <span class="jira-link"><a href="https://www.figma.com/design/VbmP10yug6xZ4lbdvwU4oL/oneofus?node-id=25623-3998" target="_blank">Figma</a></span>
+                            </div>
+                            <div class="task-details">- 공간 등급 정보 2타입 슬롯 제작
+- 리소스 추출 및 폴더 정리</div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-title">[UI] 프리셋 - 구독 만료 전용 슬롯 디자인</div>
+                            <div class="task-meta">
+                                <span class="task-points">2점</span>
+                                <span class="task-progress">100% 완료</span>
+                                <span class="jira-link"><a href="https://www.figma.com/design/VbmP10yug6xZ4lbdvwU4oL/oneofus?node-id=25713-6594" target="_blank">Figma</a></span>
+                            </div>
+                            <div class="task-details">- 프리셋 기획 보강에 따른 디자인 작업 추가 진행
+- 구독 만료 전용 슬롯 디자인 제작(팝업)
+- UMG 폰트 수정 (추천콘텐츠 배너 & 프리셋)</div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-title">[UI] 베이직 모델 적용에 따른 딤처리 디자인</div>
+                            <div class="task-meta">
+                                <span class="task-points">1점</span>
+                                <span class="task-progress">100% 완료</span>
+                                <span class="jira-link"><a href="https://www.figma.com/design/VbmP10yug6xZ4lbdvwU4oL/oneofus?node-id=25733-3762" target="_blank">Figma</a></span>
+                            </div>
+                            <div class="task-details">- [BASIC] 모델 적용 시 메뉴 접근 제한 규칙 디자인
+- disable 처리 규칙 → 디자인 반영</div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-title">[UMG] 프리셋 - 구독 만료 전용 슬롯 UMG 제작</div>
+                            <div class="task-meta">
+                                <span class="task-points">1점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">- 프리셋 구독 만료 전용 슬롯 UI 슬롯 리소스 제작
+- 테스트 리소스 폴더 정리</div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-title">[UMG] 폰트 수정</div>
+                            <div class="task-meta">
+                                <span class="task-points">1점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">- 추천 콘텐츠 배너의 폰트 수정
+- 프리셋 간격 수정(폰트 포함)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 양지석 -->
+                <div class="member-card" onclick="toggleMemberDetails(this)">
+                    <div class="member-header">
+                        <div class="member-name">양지석</div>
+                        <div class="member-stats">
+                            <span>총 6점 → 6점</span>
+                            <span class="completion-rate excellent">100%</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="member-details">
+                        <div class="task-item">
+                            <div class="task-title">NPC_V2 Props 연동 작업</div>
+                            <div class="task-meta">
+                                <span class="task-points">3점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">- 소켓 예외처리, 툰 머티리얼 관리, SK메시 적용
+- CustomizeTool 수정: NPC Prop 추가/삭제 기능, 소켓 어태치 지원
+- Furniture 콜리전 채널 추가: Myme 블럭, NPC/DisplayCharacter 오버랩 처리
+- Guitar Asset 수정: Grip Socket 추가, 머티리얼 설정</div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-title">슈퍼플랫 전략 플로우 문서</div>
+                            <div class="task-meta">
+                                <span class="task-points">3점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">- 플랫폼별 완성도 현황 정리
+- 웹/PC/Mobile/운영툴 통합 아키텍처, Mermaid 다이어그램
+- 서비스 연결 플로우, 4개 서비스 Why/How 정리
+- 기타 아이디어: 세계관, 몬스터도감, 본질적 질문 100개</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 노남권 -->
+                <div class="member-card" onclick="toggleMemberDetails(this)">
+                    <div class="member-header">
+                        <div class="member-name">노남권</div>
+                        <div class="member-stats">
+                            <span>총 5점 → 5점</span>
+                            <span class="completion-rate excellent">100%</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="member-details">
+                        <div class="task-item">
+                            <div class="task-title">[서버][기능개발] 퀘스트 테이블 변경</div>
+                            <div class="task-meta">
+                                <span class="task-points">3점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-title">[서버][기능개발] 경험치 테이블 변경</div>
+                            <div class="task-meta">
+                                <span class="task-points">1점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-title">[서버][기능개발] 트로피, 점수 테이블 변경</div>
+                            <div class="task-meta">
+                                <span class="task-points">1점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 이재원 -->
+                <div class="member-card" onclick="toggleMemberDetails(this)">
+                    <div class="member-header">
+                        <div class="member-name">이재원</div>
+                        <div class="member-stats">
+                            <span>총 5점 → 5점</span>
+                            <span class="completion-rate excellent">100%</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="member-details">
+                        <div class="task-item">
+                            <div class="task-title">타운홀 컨텐츠 기획 초안 작성</div>
+                            <div class="task-meta">
+                                <span class="task-points">3점</span>
+                                <span class="task-progress">100% 완료</span>
+                            </div>
+                            <div class="task-details">- <a class="task-link" href="https://the-crossing-lab.atlassian.net/wiki/spaces/TCLCOM/pages/800096354/_" target="_blank">what's new (공지 사항 디스플레이)</a>
+- <a class="task-link" href="https://the-crossing-lab.atlassian.net/wiki/spaces/TCLCOM/pages/800718876/_AI" target="_blank">AI 페르소나 추천 큐레이션</a>
+- <a class="task-link" href="https://the-crossing-lab.atlassian.net/wiki/spaces/TCLCOM/pages/800096363/_" target="_blank">챌린지 보드</a></div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-title">패션 편집샵 체제 및 아이디어 구상</div>
+                            <div class="task-meta">
+                                <span class="task-points">1점</span>
+                                <span class="task-progress">100% 완료</span>
+                                <span class="jira-link"><a href="https://the-crossing-lab.atlassian.net/browse/SPRPLT-544" target="_blank">SPRPLT-544</a></span>
+                            </div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-title">은행 컨텐츠 구상</div>
+                            <div class="task-meta">
+                                <span class="task-points">1점</span>
+                                <span class="task-progress">100% 완료</span>
+                                <span class="jira-link"><a href="https://the-crossing-lab.atlassian.net/browse/SPRPLT-543" target="_blank">SPRPLT-543</a></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>더크로싱랩 애자일 스프린트 보고서 시스템</p>
+            <p>© 2025 The Crossing Lab. 11월 4주차 스프린트</p>
+        </div>
+    </div>
+
+    <script>
+        function toggleMemberDetails(card) {
+            const details = card.querySelector('.member-details');
+            const wasExpanded = card.classList.contains('expanded');
+
+            // 모든 카드 닫기
+            document.querySelectorAll('.member-card').forEach(c => {
+                c.classList.remove('expanded');
+                c.querySelector('.member-details').classList.remove('expanded');
+            });
+
+            // 클릭한 카드가 닫혀있었다면 열기
+            if (!wasExpanded) {
+                card.classList.add('expanded');
+                details.classList.add('expanded');
+            }
+        }
+
+        // 페이지 로드 시 애니메이션
+        window.addEventListener('load', function() {
+            const cards = document.querySelectorAll('.member-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    setTimeout(() => {
+                        card.style.transition = 'all 0.5s ease';
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 50);
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>
